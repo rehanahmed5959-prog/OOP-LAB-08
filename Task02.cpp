@@ -1,42 +1,39 @@
-#include <cstdlib>
 #include <iostream>
-
 using namespace std;
 
 class Fraction {
 private:
-    int num;
-    int den;
+    int num, den;
 
-    static int computeGCD(int a, int b) {
-        a = abs(a);
-        b = abs(b);
+    static int gcd(int a, int b) {
+        if (a < 0) a = -a;
+        if (b < 0) b = -b;
         while (b != 0) {
-            int temp = b;
-            b = a % b;
-            a = temp;
+            int t = a % b;
+            a = b;
+            b = t;
         }
-        return (a == 0) ? 1 : a;
+        return a;
     }
-
     void simplify() {
-        if (den == 0) {
-            den = 1;
-        }
+        if (den == 0) den = 1;
         if (den < 0) {
             num = -num;
             den = -den;
         }
-        int g = computeGCD(num, den);
-        num /= g;
-        den /= g;
+        int g = gcd(num, den);
+        if (g > 1) {
+            num /= g;
+            den /= g;
+        }
     }
 
 public:
-    Fraction(int n = 0, int d = 1) : num(n), den(d) {
+    Fraction(int n = 0, int d = 1) {
+        num = n;
+        den = d;
         simplify();
     }
-
 
     Fraction operator+(const Fraction& other) const {
         return Fraction(num * other.den + other.num * den, den * other.den);
@@ -59,42 +56,49 @@ public:
     }
 
     Fraction& operator++() {
-        num += den;
-        simplify();
+        num = num + den;
         return *this;
     }
 
-    friend ostream& operator<<(ostream& out, const Fraction& f) {
-        out << f.num << '/' << f.den;
-        return out;
-    }
-
-    friend istream& operator>>(istream& in, Fraction& f) {
-        if (in >> f.num >> f.den) {
-            f.simplify();
-        }
-        return in;
-    }
+    friend ostream& operator<<(ostream& out, const Fraction& f);
+    friend istream& operator>>(istream& in, Fraction& f);
 };
 
+ostream& operator<<(ostream& out, const Fraction& f) {
+    out << f.num << "/" << f.den;
+    return out;
+}
+
+istream& operator>>(istream& in, Fraction& f) {
+    int n, d;
+    in >> n >> d;
+    f = Fraction(n, d); 
+    return in;
+}
+
 int main() {
-    Fraction a(1, 2);
-    Fraction b(3, 4);
+    Fraction a(1, 2), b(3, 4);
 
-    cout << boolalpha;
-    cout << "a = " << a << ", b = " << b << '\n';
-    cout << "a + b  = " << (a + b) << '\n';
-    cout << "a - b  = " << (a - b) << '\n';
-    cout << "a * b  = " << (a * b) << '\n';
-    cout << "a == b : " << (a == b) << '\n';
-    cout << "a < b  : " << (a < b) << '\n';
-    cout << "++a    = " << (++a) << '\n';
+    cout << a << " + " << b << " = " << a + b << endl;
+    cout << a << " - " << b << " = " << a - b << endl;
+    cout << a << " * " << b << " = " << a * b << endl;
 
-    Fraction userFrac;
-    cout << "\nEnter numerator and denominator: ";
-    if (cin >> userFrac) {
-        cout << "Simplified fraction: " << userFrac << '\n';
+    Fraction c(2, 4);
+    if (c == a) {
+        cout << "2/4 is equal to " << a << endl;
     }
+
+    if (a < b) {
+        cout << a << " is less than " << b << endl;
+    }
+
+    ++a;
+    cout << "After ++a: " << a << endl;
+
+    Fraction f;
+    cout << "Enter numerator and denominator: ";
+    cin >> f;
+    cout << "You entered " << f << endl;
 
     return 0;
 }
