@@ -1,7 +1,5 @@
-#include <iomanip>
 #include <iostream>
 #include <string>
-
 using namespace std;
 
 class Product {
@@ -10,106 +8,106 @@ protected:
     double basePrice;
 
 public:
-    Product(const string& name, double basePrice)
-        : name(name), basePrice(basePrice) {}
+    Product(string n, double p) {
+        name = n;
+        basePrice = p;
+    }
 
     string getName() const {
         return name;
     }
 
-    virtual double price() const = 0;
+    virtual double price() = 0;
 
-    virtual ~Product() = default;
+    virtual ~Product() {}
 };
 
 class Book : public Product {
 public:
-    Book(const string& name, double basePrice)
-        : Product(name, basePrice) {}
+    Book(string n, double p) : Product(n, p) {}
 
-    double price() const override {
+    double price() override {
         return basePrice;
     }
 };
 
 class Electronics : public Product {
 public:
-    Electronics(const string& name, double basePrice)
-        : Product(name, basePrice) {}
+    Electronics(string n, double p) : Product(n, p) {}
 
-    double price() const override {
+    double price() override {
         return basePrice * 1.17;
     }
 };
 
 class Cart {
 private:
-    Product* items[10]{};
-    int count = 0;
+    Product* items[10];
+    int count;
 
 public:
-    Cart() = default;
-    Cart(const Cart&) = delete;
-    Cart& operator=(const Cart&) = delete;
-
-    ~Cart() {
-        for (int i = 0; i < count; ++i) {
-            delete items[i];
-        }
+    Cart() {
+        count = 0;
     }
 
     Cart& operator+=(Product* p) {
         if (count >= 10) {
-            cout << "Cart is full!\n";
-            return *this;
-        }
-        if (p != nullptr) {
-            items[count++] = p;
+            cout << "Cart is full!" << endl;
+        } else {
+            items[count] = p;
+            count++;
         }
         return *this;
     }
 
-    Product* operator[](int i) const {
+    Product* operator[](int i) {
         if (i < 0 || i >= count) {
             return nullptr;
         }
         return items[i];
     }
 
-    double total() const {
-        double sum = 0.0;
-        for (int i = 0; i < count; ++i) {
-            sum += items[i]->price();
+    double total() {
+        double sum = 0;
+        for (int i = 0; i < count; i++) {
+            sum = sum + items[i]->price();
         }
         return sum;
     }
 
-    friend ostream& operator<<(ostream& os, const Cart& cart) {
-        os << fixed << setprecision(2);
-        for (int i = 0; i < cart.count; ++i) {
-            os << i + 1 << ". " << cart.items[i]->getName()
-               << " - $" << cart.items[i]->price() << '\n';
-        }
-        os << "Total: $" << cart.total() << '\n';
-        return os;
-    }
+    friend ostream& operator<<(ostream& out, Cart& c);
 };
 
+ostream& operator<<(ostream& out, Cart& c) {
+    out << "Cart:" << endl;
+    for (int i = 0; i < c.count; i++) {
+        out << "  " << c.items[i]->getName() << " : Rs. " << c.items[i]->price() << endl;
+    }
+    out << "  Total : Rs. " << c.total() << endl;
+    return out;
+}
+
 int main() {
+
     Cart cart;
+    Product* b  = new Book("C++ Primer", 2500);
+    Product* e1 = new Electronics("Headphones", 4000);
+    Product* e2 = new Electronics("USB Drive", 1000);
 
-    cart += new Book("Clean Code", 40.00);
-    cart += new Electronics("Mechanical Keyboard", 100.00);
-    cart += new Electronics("Wireless Mouse", 50.00);
+    cart += b;
+    cart += e1;
+    cart += e2;
 
-    cout << cart << '\n';
+    cout << cart;
 
-    if (cart[1] != nullptr) {
-        cout << "cart[1] name: " << cart[1]->getName() << '\n';
+    cout << "Second item: " << cart[1]->getName() << endl;
+
+    if (cart[5] == nullptr) {
+        cout << "cart[5] does not exist" << endl;
     }
 
-    cout << "cart[5] is nullptr: " << boolalpha
-         << (cart[5] == nullptr) << '\n';
-
+    delete b;
+    delete e1;
+    delete e2;
     return 0;
 }
